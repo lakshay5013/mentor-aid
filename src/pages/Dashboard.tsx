@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, FileText, UserPlus } from "lucide-react";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import ReportTypeSelector from "@/components/dashboard/ReportTypeSelector";
 import AcademicMetadata from "@/components/dashboard/AcademicMetadata";
 import FileUploadSection from "@/components/dashboard/FileUploadSection";
@@ -70,9 +72,52 @@ const Dashboard = () => {
       return;
     }
 
+    // Create PDF
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(16);
+    doc.text("Department of Computer Science and Engineering", 20, 20);
+    doc.setFontSize(14);
+    doc.text("Chitkara University Institute of Engineering & Technology", 20, 30);
+    
+    // Report details
+    doc.setFontSize(12);
+    doc.text(`Report Type: ${selectedReportType}`, 20, 50);
+    doc.text(`Program: ${academicData.program}`, 20, 60);
+    doc.text(`Batch: ${academicData.batch}`, 20, 70);
+    doc.text(`Academic Year: ${academicData.academicYear}`, 20, 80);
+    doc.text(`Group: ${academicData.group}`, 120, 60);
+    doc.text(`Session: ${academicData.session}`, 120, 70);
+    doc.text(`Semester: ${academicData.semester}`, 120, 80);
+    
+    // Table data
+    const tableData = manualEntries.length > 0 
+      ? manualEntries.map((entry, index) => [
+          index + 1,
+          entry.studentName || entry.rollNumber || "N/A",
+          entry.rollNumber || entry.studentId || "N/A",
+          entry.details || entry.marks || entry.attendance || "N/A"
+        ])
+      : [["1", "Sample Student", "12345", "Sample Data"]];
+    
+    // Add table
+    (doc as any).autoTable({
+      head: [["S.No.", "Student Name", "Roll Number", "Details"]],
+      body: tableData,
+      startY: 100,
+      theme: "striped",
+      headStyles: { fillColor: [41, 128, 185] },
+      styles: { fontSize: 10 }
+    });
+    
+    // Download PDF
+    const fileName = `${selectedReportType.replace(/\s+/g, '_')}_${academicData.batch}_${Date.now()}.pdf`;
+    doc.save(fileName);
+
     toast({
       title: "Success",
-      description: "PDF report generated successfully!",
+      description: "PDF report downloaded successfully!",
     });
   };
 
