@@ -25,6 +25,7 @@ const Dashboard = () => {
   });
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [manualEntries, setManualEntries] = useState<any[]>([]);
+  const [parsedFileData, setParsedFileData] = useState<any[]>([]);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -106,13 +107,21 @@ const Dashboard = () => {
     // Table data - handle both file upload and manual entry
     let tableData = [];
     
-    if (inputMethod === "file" && uploadedFile) {
-      // For file upload, create sample data since we're not parsing the actual file yet
-      tableData = [
-        ["1", "Student from " + uploadedFile.name, "FILE001", "Data from uploaded file"],
-        ["2", "Sample Student 2", "FILE002", "Sample data from file"],
-        ["3", "Sample Student 3", "FILE003", "Sample data from file"]
-      ];
+    if (inputMethod === "file" && parsedFileData.length > 0) {
+      // For file upload, use parsed data
+      tableData = parsedFileData.map((row, index) => {
+        // Try to extract common fields, fallback to first few values
+        const values = Object.values(row);
+        return [
+          index + 1,
+          values[0] || "N/A", // First column (usually name)
+          values[1] || "N/A", // Second column (usually roll number)
+          values[2] || values.slice(2).join(", ") || "N/A" // Remaining data
+        ];
+      });
+    } else if (inputMethod === "file" && uploadedFile) {
+      // Fallback if file is uploaded but not parsed yet
+      tableData = [["1", "Processing file...", "Please wait", "Data being parsed"]];
     } else if (inputMethod === "manual" && manualEntries.length > 0) {
       // For manual entries
       tableData = manualEntries.map((entry, index) => [
@@ -181,13 +190,20 @@ const Dashboard = () => {
   const PreviewContent = () => {
     let tableData = [];
     
-    if (inputMethod === "file" && uploadedFile) {
-      // For file upload, show sample data
-      tableData = [
-        { sno: 1, name: "Student from " + uploadedFile.name, rollNumber: "FILE001", details: "Data from uploaded file" },
-        { sno: 2, name: "Sample Student 2", rollNumber: "FILE002", details: "Sample data from file" },
-        { sno: 3, name: "Sample Student 3", rollNumber: "FILE003", details: "Sample data from file" }
-      ];
+    if (inputMethod === "file" && parsedFileData.length > 0) {
+      // For file upload, use parsed data
+      tableData = parsedFileData.map((row, index) => {
+        const values = Object.values(row);
+        return {
+          sno: index + 1,
+          name: values[0] || "N/A",
+          rollNumber: values[1] || "N/A",
+          details: values[2] || values.slice(2).join(", ") || "N/A"
+        };
+      });
+    } else if (inputMethod === "file" && uploadedFile) {
+      // Fallback if file is uploaded but not parsed yet
+      tableData = [{ sno: 1, name: "Processing file...", rollNumber: "Please wait", details: "Data being parsed" }];
     } else if (inputMethod === "manual" && manualEntries.length > 0) {
       // For manual entries
       tableData = manualEntries.map((entry, index) => ({
@@ -321,6 +337,7 @@ const Dashboard = () => {
               <FileUploadSection
                 uploadedFile={uploadedFile}
                 onFileUpload={setUploadedFile}
+                onDataParsed={setParsedFileData}
               />
             ) : (
               <ManualEntrySection
