@@ -145,13 +145,31 @@ const Dashboard = () => {
     try {
       const doc = createPDFDocument();
       const fileName = `${selectedReportType.replace(/\s+/g, '_')}_${academicData.batch}_${Date.now()}.pdf`;
-      doc.save(fileName);
+      
+      // Generate PDF blob and create download link
+      const pdfBlob = doc.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      
+      // Create temporary download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = fileName;
+      downloadLink.style.display = 'none';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up the URL object
+      URL.revokeObjectURL(url);
 
       toast({
         title: "Success",
         description: "PDF report downloaded successfully!",
       });
     } catch (error) {
+      console.error('PDF generation error:', error);
       toast({
         title: "Error",
         description: "Failed to generate PDF. Please try again.",
