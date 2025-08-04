@@ -103,15 +103,28 @@ const Dashboard = () => {
     doc.text(`Session: ${academicData.session}`, 120, 70);
     doc.text(`Semester: ${academicData.semester}`, 120, 80);
     
-    // Table data
-    const tableData = manualEntries.length > 0 
-      ? manualEntries.map((entry, index) => [
-          index + 1,
-          entry.studentName || entry.rollNumber || "N/A",
-          entry.rollNumber || entry.studentId || "N/A",
-          entry.details || entry.marks || entry.attendance || "N/A"
-        ])
-      : [["1", "Sample Student", "12345", "Sample Data"]];
+    // Table data - handle both file upload and manual entry
+    let tableData = [];
+    
+    if (inputMethod === "file" && uploadedFile) {
+      // For file upload, create sample data since we're not parsing the actual file yet
+      tableData = [
+        ["1", "Student from " + uploadedFile.name, "FILE001", "Data from uploaded file"],
+        ["2", "Sample Student 2", "FILE002", "Sample data from file"],
+        ["3", "Sample Student 3", "FILE003", "Sample data from file"]
+      ];
+    } else if (inputMethod === "manual" && manualEntries.length > 0) {
+      // For manual entries
+      tableData = manualEntries.map((entry, index) => [
+        index + 1,
+        entry.studentName || entry.rollNumber || "N/A",
+        entry.rollNumber || entry.studentId || "N/A",
+        entry.details || entry.marks || entry.attendance || "N/A"
+      ]);
+    } else {
+      // Fallback sample data
+      tableData = [["1", "Sample Student", "12345", "Sample Data"]];
+    }
     
     // Add table
     (doc as any).autoTable({
@@ -148,14 +161,27 @@ const Dashboard = () => {
   };
 
   const PreviewContent = () => {
-    const tableData = manualEntries.length > 0 
-      ? manualEntries.map((entry, index) => ({
-          sno: index + 1,
-          name: entry.studentName || entry.rollNumber || "N/A",
-          rollNumber: entry.rollNumber || entry.studentId || "N/A",
-          details: entry.details || entry.marks || entry.attendance || "N/A"
-        }))
-      : [{ sno: 1, name: "Sample Student", rollNumber: "12345", details: "Sample Data" }];
+    let tableData = [];
+    
+    if (inputMethod === "file" && uploadedFile) {
+      // For file upload, show sample data
+      tableData = [
+        { sno: 1, name: "Student from " + uploadedFile.name, rollNumber: "FILE001", details: "Data from uploaded file" },
+        { sno: 2, name: "Sample Student 2", rollNumber: "FILE002", details: "Sample data from file" },
+        { sno: 3, name: "Sample Student 3", rollNumber: "FILE003", details: "Sample data from file" }
+      ];
+    } else if (inputMethod === "manual" && manualEntries.length > 0) {
+      // For manual entries
+      tableData = manualEntries.map((entry, index) => ({
+        sno: index + 1,
+        name: entry.studentName || entry.rollNumber || "N/A",
+        rollNumber: entry.rollNumber || entry.studentId || "N/A",
+        details: entry.details || entry.marks || entry.attendance || "N/A"
+      }));
+    } else {
+      // Fallback data
+      tableData = [{ sno: 1, name: "Sample Student", rollNumber: "12345", details: "Sample Data" }];
+    }
 
     return (
       <div className="space-y-6 p-4">
