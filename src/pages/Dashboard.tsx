@@ -35,6 +35,14 @@ const Dashboard = () => {
     navigate("/login");
   };
 
+  const isFormValid = () => {
+    return (
+      selectedReportType &&
+      Object.values(academicData).filter(Boolean).length >= 6 &&
+      ((inputMethod === "file" && uploadedFile) || (inputMethod === "manual" && manualEntries.length > 0))
+    );
+  };
+
   const validateInputs = () => {
     if (!selectedReportType) {
       toast({
@@ -288,7 +296,7 @@ const Dashboard = () => {
                 variant="outline" 
                 size="lg" 
                 className="px-8"
-                disabled={!validateInputs()}
+                disabled={!isFormValid()}
               >
                 <Eye className="h-4 w-4 mr-2" />
                 Preview Report
